@@ -1,0 +1,16 @@
+package me.roundaround.custompaintings.server.world;
+
+import me.roundaround.allay.api.InjectedInterface;
+import me.roundaround.custompaintings.server.ServerInfo;
+import me.roundaround.custompaintings.server.ServerPaintingManager;
+
+@InjectedInterface
+public interface ServerLevelExtensions {
+  default ServerPaintingManager custompaintings$getPaintingManager() {
+    throw new UnsupportedOperationException("Unable to call directly from injected interface. Implemented in mixin.");
+  }
+
+  default ServerInfo custompaintings$getServerInfo() {
+    throw new UnsupportedOperationException("Unable to call directly from injected interface. Implemented in mixin.");
+  }
+}

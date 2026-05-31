@@ -1,0 +1,8 @@
+classTweaker v1 official
+
+# CreativeModeTabsMixin injects into CreativeModeTabs#generatePresetPaintings,
+# whose signature exposes these protected nested types of CreativeModeTab. A
+# mixin in another package can only name them if they are accessible. Allay
+# emits this as a Fabric accessWidener and a NeoForge/Forge accesstransformer.
+accessible class net/minecraft/world/item/CreativeModeTab$Output
+accessible class net/minecraft/world/item/CreativeModeTab$TabVisibility
