@@ -356,192 +356,27 @@ loaded and your paintings will be restored.
 
 -----
 
-<details>
-<summary>Pre-3.0.0 mod listing</summary>
+## Pre-3.0.0 (resource pack) versions
 
-Add your own custom paintings to Minecraft. No longer are you bound to the number (or sizes) of paintings in vanilla!
-Based on resource packs, you can define as many paintings as you like! The server will store the painting's size and
-name and any clients with a painting of the same name will be able to render it!
+Before 3.0.0, Custom Paintings was **resource-pack based** rather than server-driven. If you're coming from an older
+version or have old packs lying around, these are the parts that worked differently:
 
-**Please note that _no_ new paintings are included in this mod. You need to supply your own!** If you're looking for a
-painting pack that supports this mod, check out
-my [Famous Real Paintings](https://modrinth.com/resourcepack/famous-real-paintings) resource pack!
+- **Packs were Minecraft resource packs.** Instead of dropping a pack into the world's `custompaintings/` folder, you
+  placed it in `resourcepacks/` and enabled it like any other resource pack — there was no in-game pack management or
+  drag-and-drop install, and no server-side image transfer. On multiplayer **every player (and the server) had to have
+  the mod plus the exact same packs at the same versions**, or paintings wouldn't render. The mod was really built with
+  single player in mind.
 
-This mod comes with a painting picker UI, allowing you to specifically choose which painting you'd like to pick. Even if
-you don't install any painting packs, the new picker UI can help you place exactly the painting you're looking for!
+- **Textures lived inside the pack's `assets` tree.** The `custompaintings.json` went at the **root** of the resource
+  pack, and each painting's PNG went in `assets/<pack id>/textures/painting/<painting id>.png` — the pack `id`
+  determined the texture directory. (The 3.0.0+ format instead uses a standalone pack folder with an `images/`
+  subfolder.) Images were PNG, ideally ~16 pixels per block.
 
-![](https://raw.githubusercontent.com/Roundaround/mc-fabric-custom-paintings/refs/heads/main/assets/screenshots/2_0_0/pack-select.png)
-![](https://raw.githubusercontent.com/Roundaround/mc-fabric-custom-paintings/refs/heads/main/assets/screenshots/2_0_0/painting-select.png)
-![](https://raw.githubusercontent.com/Roundaround/mc-fabric-custom-paintings/refs/heads/main/assets/screenshots/2_0_0/filter.png)
+- **The JSON schema was slightly different.** Pack `id` allowed alphanumeric and underscores only (no dashes), there was
+  no `description` field, and any painting texture with no matching entry defaulted to 1×1. The painting `name` and
+  `artist` fields were added in v2.0.0. The `paintings` and `migrations` lists otherwise worked the same way.
 
-## Resource packs
-
-### Image files
-
-Insert your custom painting image files in a very similar place as vanilla paintings! The primary difference will be the
-`minecraft` folder should be changed to your own custom, unique id, and should match the one listed in your
-`custompaintings.json` file (see below).
-
-`Famous Paintings.zip/assets/famouspaintings/textures/painting/davinci_mona_lisa.png`
-
-Similar to vanilla paintings, the files need to be in .png format. While there are technically no minimum or maximum
-size, it is really recommended to stick to an image resolution of 16 pixels per block (or scaled up to match your
-current resource pack). Anything over 160 pixels per block is probably going to make the image file larger than it
-really needs to be and is likely to cause performance issues.
-
-### Resource pack format
-
-The custom paintings for this mod are powered by resource packs. To create a resource pack compatible with the mod,
-simply add a new file `custompaintings.json` to the root of the resource pack that might look something like this:
-
-```json
-{
-  "id": "famouspaintings",
-  "name": "Famous real paintings",
-  "paintings": [
-    {
-      "id": "davinci_mona_lisa",
-      "name": "Mona Lisa",
-      "artist": "Leonardo DaVinci",
-      "width": 1,
-      "height": 2
-    },
-    {
-      "id": "monet_water_lilies",
-      "name": "Water Lilies",
-      "artist": "Claude Monet",
-      "width": 2,
-      "height": 2
-    },
-    {
-      "id": "vangogh_starry_night",
-      "name": "Starry Night",
-      "artist": "Vincent van Gogh",
-      "width": 4,
-      "height": 3
-    }
-  ]
-}
-```
-
-#### Pack properties
-
-`id`: `Text, alphanumeric & underscores only` - The unique ID of the painting pack. This must be different from all
-other painting packs (and different from the mod IDs for other fabric mods that add custom paintings). Additionally this
-ID determines the directory in which you should place the painting textures. For example, with the ID "famouspaintings",
-the textures should go in `assets/famouspaintings/textures/painting`.
-
-`name`: `Text (optional)` - The name to show in the painting picker for this collection! If omitted the UI will simply
-show the resource pack's filename.
-
-`paintings`: `List[Painting]` - The definitions of all the paintings to pull from in the painting picker UI!
-
-`migrations`: `List[Migration]` - The large-scale migrations associated with this pack. It is not likely you'll want to
-create one of these by hand, but the standalone painting resource pack editor _(coming soon)_ can generate them for you
-when you split large packs into multiple smaller ones.
-
-#### Painting properties
-
-Each painting will need its own properties defined. By default, any painting textures within your resource pack's
-directory will default to the ID of the filename, with a block height & width of 1. Define entries in your
-custompaintings.json to overwrite these dimensions!
-
-`id`: `Text, alphanumeric & underscores only` - The unique ID of the painting. This is what will be stored on the server
-and will determine which texture to render. For example, the ID of `starry_night` in the pack `famouspaintings` will
-render the texture located at `assets/famouspaintings/textures/painting/starry_night.png`.
-
-`name`: `Text (optional)` - The name of the painting. Introduced in v2.0.0.
-
-`artist`: `Text (optional)` - The artist of the painting. Introduced in v2.0.0.
-
-`width`: `Integer` - The number of blocks wide this painting should occupy. For example, the vanilla Donkey Kong
-painting would have a value of 4.
-
-`height`: `Integer` - The number of blocks high this painting should occupy. For example, the vanilla Donkey Kong
-painting would have a value of 3.
-
-#### Migration properties
-
-As mentioned above, it is unlikely you'll want to create a migration by hand. However, if you would like to do so, a
-migration is composed of a few key parts.
-
-`id`: `Text` - Together with the pack id should be globally unique across all migrations in all packs.
-
-`description`: `Text (optional)` - A human-readable description of the migration, i.e. "Split from 'Famous Real
-Paintings'"
-
-`pairs`: `List[List[ID]]` - The list of painting ID pairs this migration is responsible for. For each entry here,
-running the migration will reassign any painting with the first ID to instead be the painting with the second ID.
-
-## Management UIs
-
-To assist in managing your custom paintings through resource pack updates (because sometimes things can get changed or
-removed, so the paintings in your world might get out of date), there are a few included UIs designed to facilitate some
-common cleanup tasks. These screens can be accessed through a keybinding (no assignment by default, located in the
-Miscellaneous section of the keybinds menu) or by using the `/custompaintings manage` command.
-
-![](https://raw.githubusercontent.com/Roundaround/mc-fabric-custom-paintings/refs/heads/main/assets/screenshots/2_0_0/manage.png)
-
-### Unknown paintings
-
-Identify any paintings in your world whose IDs no longer exist in any of your resource packs, then decide whether you'd
-like to reassign those paintings to something new or simply remove them from your world.
-
-![](https://raw.githubusercontent.com/Roundaround/mc-fabric-custom-paintings/refs/heads/main/assets/screenshots/2_0_0/unknown.png)
-
-### Mismatched paintings
-
-Identify any paintings in your world that have metadata that does not match what is currently specified in your enabled
-resource packs, and easily update them from the resource pack with the click of a button.
-
-![](https://raw.githubusercontent.com/Roundaround/mc-fabric-custom-paintings/refs/heads/main/assets/screenshots/2_0_0/mismatched.png)
-
-### Run a migration
-
-When updating the custom painting resource packs, sometimes it is necessary to do large scale updates (such as splitting
-packs into multiple smaller ones). If any migrations are specified in any of your painting resource packs, you can run
-them here to automatically update any paintings affected.
-
-![](https://raw.githubusercontent.com/Roundaround/mc-fabric-custom-paintings/refs/heads/main/assets/screenshots/2_0_0/migration.png)
-
-## Commands
-
-The mod comes some utility commands for managing your custom paintings as well. To access them, open your Minecraft chat
-and enter `/custompaintings` followed by the appropriate command. For example, you can access the management UIs by
-entering `/custompaintings manage` in the Minecraft chat box. If a command references a "targeted" painting, it is
-referring to any painting your character is currently looking at.
-
-`manage` - Opens the management screens
-
-`identify` - Prints some information in chat about the targeted painting
-
-`count` - Prints the number of copies of the targeted painting currently in the world
-
-`count minecraft:kebab` - Prints the number of copies of the kebab painting currently in the world
-
-`fix` - Attempts to update the targeted painting from the data in your installed resource packs
-
-`fix all` - Attempts to update all paintings that have incorrect data
-
-`fix famouspaintings:davinci_mona_lisa` - Attempts to update all copies of the famouspaintings:davinci_mona_lisa
-painting throughout the world
-
-`move up 2` - Moves the targeted painting up 2 blocks
-
-`reassign minecraft:aztec` - Changes the targeted painting to be the aztec painting
-
-`reassign all minecraft:kebab minecraft:aztec` - Changes all copies of the kebab painting into the aztec painting
-
-`remove` - Removes the targeted painting
-
-`remove unknown` - Removes all paintings in the world that aren't specified in any resource packs
-
-`remove minecraft:kebab` - Removes all copies of kebab in the world
-
-## Warning
-
-This mod was designed and developed with single player in mind! While the mod _might_ work on a multiplayer server,
-everyone would need to have the mod and all custom painting resource packs installed (and all the same version) or
-things can get messy quick.
-
-</details>
+- **Management was command/keybind driven.** There was no unified main menu. The cleanup screens (Unknown paintings,
+  Mismatched paintings, Run a migration) were reached via `/custompaintings manage` or an unbound keybind in the
+  Miscellaneous keybinds section, and the rest of the `/custompaintings` command suite (`identify`, `count`, `fix`,
+  `move`, `reassign`, `remove`) handled targeted fixes from chat.
