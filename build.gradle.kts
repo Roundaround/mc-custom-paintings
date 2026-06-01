@@ -10,13 +10,13 @@ allay {
   homepage.set("https://modrinth.com/mod/custom-paintings-mod")
   repository.set("https://github.com/Roundaround/mc-fabric-custom-paintings")
   issues.set("https://github.com/Roundaround/mc-fabric-custom-paintings/issues")
+  logoFile.set("assets/custompaintings/banner.png")
 
   modrinth {
     projectId.set("custom-paintings-mod")
   }
 
-  // TODO(maintainer): CurseForge project id not discoverable in-tree; add a
-  // curseforge { projectId.set(...) } block here if/when the mod is published there.
+  // curseforge { projectId.set(...) }
 
   release {
     versionType.set("release")
