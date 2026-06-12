@@ -1,5 +1,6 @@
 package me.roundaround.custompaintings.client.gui.screen;
 
+import me.roundaround.custompaintings.client.gui.screen.editor.ZeroScreen;
 import me.roundaround.custompaintings.client.gui.widget.LoadingButtonWidget;
 import me.roundaround.custompaintings.client.gui.widget.VersionStamp;
 import me.roundaround.custompaintings.client.network.ClientNetworking;
@@ -53,6 +54,10 @@ public class MainMenuScreen extends BaseScreen implements PacksLoadedListener {
         Component.translatable("custompaintings.main.packs.manage") :
         Component.translatable("custompaintings.main.packs.view");
     Button packsButton = this.layout.addBody(Button.builder(packsLabel, this::navigatePacks)
+        .width(BUTTON_WIDTH)
+        .build());
+
+    this.layout.addBody(Button.builder(Component.translatable("custompaintings.main.editor"), this::navigateEditor)
         .width(BUTTON_WIDTH)
         .build());
 
@@ -134,6 +139,10 @@ public class MainMenuScreen extends BaseScreen implements PacksLoadedListener {
     boolean inSinglePlayer = this.minecraft.isLocalServer();
     boolean hasOps = hasOps(this.minecraft.player);
     this.minecraft.setScreen(new PacksScreen(this, inSinglePlayer || hasOps));
+  }
+
+  private void navigateEditor(Button button) {
+    this.minecraft.setScreen(new ZeroScreen(new ScreenParent(this), this.minecraft));
   }
 
   private void navigateConvert(Button button) {
