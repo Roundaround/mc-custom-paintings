@@ -6,7 +6,7 @@
 
 [![Modrinth Downloads](https://img.shields.io/modrinth/dt/custom-paintings-mod?style=flat&logo=modrinth&color=00AF5C)](https://modrinth.com/mod/custom-paintings-mod)
 [![CurseForge Downloads](https://img.shields.io/curseforge/dt/1560408?style=flat&logo=curseforge&color=F16436)](https://www.curseforge.com/minecraft/mc-mods/rounds-custom-paintings)
-[![GitHub Repo stars](https://img.shields.io/github/stars/Roundaround/mc-fabric-custom-paintings?style=flat&logo=github)](https://github.com/Roundaround/mc-fabric-custom-paintings)
+[![GitHub Repo stars](https://img.shields.io/github/stars/Roundaround/mc-custom-paintings?style=flat&logo=github)](https://github.com/Roundaround/mc-custom-paintings)
 
 [![Support me on Ko-fi](https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/compact/donate/kofi-singular-alt_vector.svg)](https://ko-fi.com/roundaround)
 
@@ -362,15 +362,15 @@ Before 3.0.0, Custom Paintings was **resource-pack based** rather than server-dr
 version or have old packs lying around, these are the parts that worked differently:
 
 - **Packs were Minecraft resource packs.** Instead of dropping a pack into the world's `custompaintings/` folder, you
-  placed it in `resourcepacks/` and enabled it like any other resource pack — there was no in-game pack management or
+  placed it in `resourcepacks/` and enabled it like any other resource pack - there was no in-game pack management or
   drag-and-drop install, and no server-side image transfer. On multiplayer **every player (and the server) had to have
   the mod plus the exact same packs at the same versions**, or paintings wouldn't render. The mod was really built with
   single player in mind.
 
 - **Textures lived inside the pack's `assets` tree.** The `custompaintings.json` went at the **root** of the resource
-  pack, and each painting's PNG went in `assets/<pack id>/textures/painting/<painting id>.png` — the pack `id`
+  pack, and each painting's PNG went in `assets/<pack id>/textures/painting/<painting id>.png` - the pack `id`
   determined the texture directory. (The 3.0.0+ format instead uses a standalone pack folder with an `images/`
-  subfolder.) Images were PNG, ideally ~16 pixels per block.
+  subfolder.) Images were PNG, ideally 16 pixels per block.
 
 - **The JSON schema was slightly different.** Pack `id` allowed alphanumeric and underscores only (no dashes), there was
   no `description` field, and any painting texture with no matching entry defaulted to 1×1. The painting `name` and

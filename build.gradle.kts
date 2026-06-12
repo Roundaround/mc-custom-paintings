@@ -8,18 +8,21 @@ allay {
   authors.set(listOf("Roundaround"))
   license.set("MIT")
   homepage.set("https://modrinth.com/mod/custom-paintings-mod")
-  repository.set("https://github.com/Roundaround/mc-fabric-custom-paintings")
-  issues.set("https://github.com/Roundaround/mc-fabric-custom-paintings/issues")
+  repository.set("https://github.com/Roundaround/mc-custom-paintings")
+  issues.set("https://github.com/Roundaround/mc-custom-paintings/issues")
   logoFile.set("assets/custompaintings/banner.png")
 
   modrinth {
     projectId.set("custom-paintings-mod")
   }
 
-  // curseforge { projectId.set(...) }
+  curseforge {
+    projectId.set(1560408)
+  }
 
   release {
     versionType.set("release")
-    sourcesJar.set(true)
+    minecraftVersions("26.1".."26.1.2")
+    changelogDir.set(file("changelogs"))
   }
 }
