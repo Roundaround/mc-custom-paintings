@@ -1,12 +1,6 @@
 package me.roundaround.custompaintings.forge;
 
 import me.roundaround.custompaintings.CustomPaintingsMod;
-import me.roundaround.custompaintings.client.ClientPaintingManager;
-import me.roundaround.custompaintings.client.gui.screen.MainMenuScreen;
-import me.roundaround.custompaintings.client.option.KeyMappings;
-import me.roundaround.custompaintings.client.registry.CacheManager;
-import me.roundaround.custompaintings.client.registry.ClientPaintingRegistry;
-import me.roundaround.custompaintings.client.registry.ItemManager;
 import me.roundaround.custompaintings.command.CustomPaintingsCommand;
 import me.roundaround.custompaintings.server.ServerInfo;
 import me.roundaround.custompaintings.server.network.ImagePacketQueue;
@@ -16,8 +10,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.decoration.painting.Painting;
-import net.minecraftforge.client.ConfigScreenHandler;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
@@ -29,8 +21,8 @@ import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 
 @Mod("custompaintings")
 public final class CustomPaintingsForgeMod {
@@ -54,26 +46,15 @@ public final class CustomPaintingsForgeMod {
       }
     });
 
-    // -- Entity join/leave (server painting manager + client painting cache) -
+    // -- Entity join/leave (server painting manager) -------------------------
     EntityJoinLevelEvent.BUS.addListener(event -> {
-      if (!(event.getEntity() instanceof Painting painting)) {
-        return;
-      }
-      if (event.getLevel() instanceof ServerLevel world) {
+      if (event.getEntity() instanceof Painting painting && event.getLevel() instanceof ServerLevel world) {
         CustomPaintingsMod.onPaintingLoad(world, painting);
-      } else if (event.getLevel().isClientSide()) {
-        ClientPaintingManager.onEntityLoad(painting);
       }
     });
-
     EntityLeaveLevelEvent.BUS.addListener(event -> {
-      if (!(event.getEntity() instanceof Painting painting)) {
-        return;
-      }
-      if (event.getLevel() instanceof ServerLevel world) {
+      if (event.getEntity() instanceof Painting painting && event.getLevel() instanceof ServerLevel world) {
         CustomPaintingsMod.onPaintingUnload(world, painting);
-      } else if (event.getLevel().isClientSide()) {
-        ClientPaintingManager.onEntityUnload(painting);
       }
     });
 
@@ -117,24 +98,9 @@ public final class CustomPaintingsForgeMod {
     // -- Image-packet throttle tick (parity with Fabric's START_SERVER_TICK) -
     TickEvent.ServerTickEvent.Pre.BUS.addListener(event -> ImagePacketQueue.getInstance().tick());
 
-    // -- Client lifecycle (game bus) -----------------------------------------
-    ClientPlayerNetworkEvent.LoggingIn.BUS.addListener(event -> ClientPaintingManager.init());
-    ClientPlayerNetworkEvent.LoggingOut.BUS.addListener(event -> {
-      ClientPaintingRegistry.getInstance().clear();
-      ClientPaintingManager.getInstance().clear();
-    });
-
-    // -- Client setup (mod bus) ----------------------------------------------
-    FMLClientSetupEvent.getBus(context.getModBusGroup()).addListener(event -> {
-      KeyMappings.register();
-      CacheManager.runBackgroundClean();
-      ItemManager.runBackgroundClean();
-    });
-
-    // -- ModMenu analog: config-screen extension point -----------------------
-    context.getContainer().registerExtensionPoint(
-        ConfigScreenHandler.ConfigScreenFactory.class,
-        () -> new ConfigScreenHandler.ConfigScreenFactory(
-            (mc, parent) -> new MainMenuScreen(parent)));
+    // -- Client setup: gated so the dedicated server never loads client classes.
+    if (FMLEnvironment.dist.isClient()) {
+      CustomPaintingsForgeClient.init(context);
+    }
   }
 }

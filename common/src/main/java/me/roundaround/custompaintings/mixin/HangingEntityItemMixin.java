@@ -7,6 +7,7 @@ import me.roundaround.custompaintings.client.registry.ClientPaintingRegistry;
 import me.roundaround.custompaintings.entity.decoration.painting.PaintingData;
 import me.roundaround.custompaintings.network.Networking;
 import me.roundaround.custompaintings.server.network.ServerNetworking;
+import me.roundaround.custompaintings.server.registry.ServerPaintingRegistry;
 import me.roundaround.custompaintings.util.CustomId;
 import me.roundaround.trove.network.TroveNetworking;
 import net.minecraft.ChatFormatting;
@@ -68,11 +69,11 @@ public abstract class HangingEntityItemMixin {
 
     Painting painting = new Painting(level, pos, direction, placeholderVariant.get());
 
-    PaintingData data = getStackPainting(context.getItemInHand());
+    PaintingData data = getStackPaintingServer(context.getItemInHand());
     if (data == null) {
       Holder<PaintingVariant> variantEntry = context.getItemInHand().get(DataComponents.PAINTING_VARIANT);
       if (variantEntry != null) {
-        data = ClientPaintingRegistry.getInstance().get(CustomId.from(variantEntry.value().assetId()));
+        data = ServerPaintingRegistry.getInstance().get(CustomId.from(variantEntry.value().assetId()));
       }
     }
     if (data != null && !data.isEmpty()) {
@@ -126,7 +127,7 @@ public abstract class HangingEntityItemMixin {
   }
 
   @Unique
-  private static PaintingData getStackPainting(ItemStack stack) {
+  private static CustomId getStackPaintingId(ItemStack stack) {
     CustomData component = stack.get(DataComponents.CUSTOM_DATA);
     if (component == null || component.isEmpty()) {
       return null;
@@ -138,12 +139,27 @@ public abstract class HangingEntityItemMixin {
       return null;
     }
 
-    PaintingData painting = ClientPaintingRegistry.getInstance().get(CustomId.parse(id));
-    if (painting == null || painting.isEmpty()) {
+    return CustomId.parse(id);
+  }
+
+  @Unique
+  private static PaintingData getStackPainting(ItemStack stack) {
+    CustomId id = getStackPaintingId(stack);
+    if (id == null) {
       return null;
     }
+    PaintingData painting = ClientPaintingRegistry.getInstance().get(id);
+    return (painting == null || painting.isEmpty()) ? null : painting;
+  }
 
-    return painting;
+  @Unique
+  private static PaintingData getStackPaintingServer(ItemStack stack) {
+    CustomId id = getStackPaintingId(stack);
+    if (id == null) {
+      return null;
+    }
+    PaintingData painting = ServerPaintingRegistry.getInstance().get(id);
+    return (painting == null || painting.isEmpty()) ? null : painting;
   }
 
   @Unique

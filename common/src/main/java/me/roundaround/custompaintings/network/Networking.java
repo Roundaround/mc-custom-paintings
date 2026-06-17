@@ -1,13 +1,6 @@
 package me.roundaround.custompaintings.network;
 
-import me.roundaround.custompaintings.CustomPaintingsMod;
-import me.roundaround.custompaintings.client.ClientPaintingManager;
-import me.roundaround.custompaintings.client.gui.PaintingEditState;
-import me.roundaround.custompaintings.client.gui.screen.MainMenuScreen;
-import me.roundaround.custompaintings.client.gui.screen.MigrationsScreen;
-import me.roundaround.custompaintings.client.gui.screen.set.PackSelectScreen;
-import me.roundaround.custompaintings.client.registry.ClientPaintingRegistry;
-import me.roundaround.custompaintings.client.toast.CustomSystemToasts;
+import me.roundaround.custompaintings.client.network.ClientNetworking;
 import me.roundaround.custompaintings.entity.decoration.painting.PackData;
 import me.roundaround.custompaintings.entity.decoration.painting.PaintingData;
 import me.roundaround.custompaintings.generated.Constants;
@@ -16,12 +9,8 @@ import me.roundaround.custompaintings.server.ServerInfo;
 import me.roundaround.custompaintings.server.ServerPaintingManager;
 import me.roundaround.custompaintings.server.registry.ServerPaintingRegistry;
 import me.roundaround.custompaintings.util.CustomId;
-import me.roundaround.custompaintings.util.StringUtil;
 import me.roundaround.trove.network.TroveNetworking;
 import me.roundaround.trove.network.TrovePacketCodecs;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.ChatScreen;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.UUIDUtil;
@@ -36,7 +25,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.Permissions;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.decoration.painting.Painting;
-import net.minecraft.world.level.Level;
 
 import java.util.List;
 import java.util.Map;
@@ -98,17 +86,25 @@ public final class Networking {
     TroveNetworking.registerC2S(SetPaintingC2S.ID, SetPaintingC2S.CODEC, Networking::handleSetPainting);
     TroveNetworking.registerC2S(RunMigrationC2S.ID, RunMigrationC2S.CODEC, Networking::handleRunMigration);
 
-    // Client-bound (S2C) registrations: handler runs on the logical client.
-    TroveNetworking.registerS2C(SummaryS2C.ID, SummaryS2C.CODEC, Networking::handleSummary);
-    TroveNetworking.registerS2C(DownloadSummaryS2C.ID, DownloadSummaryS2C.CODEC, Networking::handleDownloadSummary);
-    TroveNetworking.registerS2C(ImageS2C.ID, ImageS2C.CODEC, Networking::handleImage);
-    TroveNetworking.registerS2C(ImageHeaderS2C.ID, ImageHeaderS2C.CODEC, Networking::handleImageHeader);
-    TroveNetworking.registerS2C(ImageChunkS2C.ID, ImageChunkS2C.CODEC, Networking::handleImageChunk);
-    TroveNetworking.registerS2C(EditPaintingS2C.ID, EditPaintingS2C.CODEC, Networking::handleEditPainting);
-    TroveNetworking.registerS2C(SetPaintingS2C.ID, SetPaintingS2C.CODEC, Networking::handleSetPainting);
-    TroveNetworking.registerS2C(SyncAllDataS2C.ID, SyncAllDataS2C.CODEC, Networking::handleSyncAllData);
-    TroveNetworking.registerS2C(MigrationFinishS2C.ID, MigrationFinishS2C.CODEC, Networking::handleMigrationFinish);
-    TroveNetworking.registerS2C(OpenMenuS2C.ID, OpenMenuS2C.CODEC, Networking::handleOpenMenu);
+    // S2C bodies live in client-only ClientNetworking; explicit lambdas (not method refs) keep it off
+    // the server, which runs register() only to send these.
+    TroveNetworking.registerS2C(SummaryS2C.ID, SummaryS2C.CODEC, (payload) -> ClientNetworking.handleSummary(payload));
+    TroveNetworking.registerS2C(DownloadSummaryS2C.ID, DownloadSummaryS2C.CODEC,
+        (payload) -> ClientNetworking.handleDownloadSummary(payload));
+    TroveNetworking.registerS2C(ImageS2C.ID, ImageS2C.CODEC, (payload) -> ClientNetworking.handleImage(payload));
+    TroveNetworking.registerS2C(ImageHeaderS2C.ID, ImageHeaderS2C.CODEC,
+        (payload) -> ClientNetworking.handleImageHeader(payload));
+    TroveNetworking.registerS2C(ImageChunkS2C.ID, ImageChunkS2C.CODEC,
+        (payload) -> ClientNetworking.handleImageChunk(payload));
+    TroveNetworking.registerS2C(EditPaintingS2C.ID, EditPaintingS2C.CODEC,
+        (payload) -> ClientNetworking.handleEditPainting(payload));
+    TroveNetworking.registerS2C(SetPaintingS2C.ID, SetPaintingS2C.CODEC,
+        (payload) -> ClientNetworking.handleSetPainting(payload));
+    TroveNetworking.registerS2C(SyncAllDataS2C.ID, SyncAllDataS2C.CODEC,
+        (payload) -> ClientNetworking.handleSyncAllData(payload));
+    TroveNetworking.registerS2C(MigrationFinishS2C.ID, MigrationFinishS2C.CODEC,
+        (payload) -> ClientNetworking.handleMigrationFinish(payload));
+    TroveNetworking.registerS2C(OpenMenuS2C.ID, OpenMenuS2C.CODEC, (payload) -> ClientNetworking.handleOpenMenu(payload));
     // Note: ImageIdsS2C and ListUnknownS2C have no registered receiver (parity with the legacy
     // Fabric-only build, which registered the payload type but never a client handler).
   }
@@ -176,127 +172,6 @@ public final class Networking {
 
   private static void handleRunMigration(RunMigrationC2S payload, ServerPlayer player) {
     player.level().getServer().execute(() -> ServerPaintingManager.runMigration(player, payload.id()));
-  }
-
-  // ---------------------------------------------------------------------------
-  // S2C handlers (client side). The legacy Fabric receivers wrapped these in
-  // context.client().execute(...); here Minecraft.getInstance() is the client.
-  // ---------------------------------------------------------------------------
-
-  private static void handleSummary(SummaryS2C payload) {
-    Minecraft client = Minecraft.getInstance();
-    client.execute(() -> {
-      if (client.isLocalServer() && payload.skipped()) {
-        CustomSystemToasts.addPackLoadSkipped(client);
-      }
-      if (client.player != null &&
-          (client.isLocalServer() || client.player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)) &&
-          payload.loadErrorOrSkipCount() > 0) {
-        CustomSystemToasts.addPackLoadFailure(client);
-      }
-      ClientPaintingRegistry.getInstance()
-          .processSummary(
-              payload.packs(),
-              payload.serverId(),
-              payload.combinedImageHash(),
-              payload.finishedMigrations()
-          );
-    });
-  }
-
-  private static void handleDownloadSummary(DownloadSummaryS2C payload) {
-    Minecraft.getInstance().execute(() -> ClientPaintingRegistry.getInstance()
-        .trackExpectedPackets(payload.ids(), payload.imageCount(), payload.byteCount()));
-  }
-
-  private static void handleImage(ImageS2C payload) {
-    Minecraft.getInstance().execute(() -> {
-      CustomPaintingsMod.LOGGER.info(
-          "Received full image for {} ({}).",
-          payload.id(),
-          StringUtil.formatBytes(payload.image().getSize())
-      );
-      ClientPaintingRegistry.getInstance().setPaintingImage(payload.id(), payload.image());
-    });
-  }
-
-  private static void handleImageHeader(ImageHeaderS2C payload) {
-    Minecraft.getInstance().execute(() -> {
-      CustomPaintingsMod.LOGGER.info("Received image header for {}.", payload.id());
-      ClientPaintingRegistry.getInstance()
-          .setPaintingHeader(payload.id(), payload.width(), payload.height(), payload.totalChunks());
-    });
-  }
-
-  private static void handleImageChunk(ImageChunkS2C payload) {
-    Minecraft.getInstance().execute(() -> {
-      CustomPaintingsMod.LOGGER.info(
-          "Received image chunk #{} for {} ({}).",
-          payload.index(),
-          payload.id(),
-          StringUtil.formatBytes(payload.bytes().length)
-      );
-      ClientPaintingRegistry.getInstance().setPaintingChunk(payload.id(), payload.index(), payload.bytes());
-    });
-  }
-
-  private static void handleEditPainting(EditPaintingS2C payload) {
-    Minecraft client = Minecraft.getInstance();
-    client.execute(() -> {
-      PaintingEditState state = new PaintingEditState(
-          client,
-          payload.paintingId(),
-          payload.pos(),
-          payload.facing()
-      );
-
-      client.setScreen(new PackSelectScreen(state));
-    });
-  }
-
-  private static void handleSetPainting(SetPaintingS2C payload) {
-    Minecraft client = Minecraft.getInstance();
-    client.execute(() -> {
-      if (client.player == null) {
-        return;
-      }
-      ClientPaintingManager.getInstance().trySetPaintingData(client.player.level(), payload.assignment());
-    });
-  }
-
-  private static void handleSyncAllData(SyncAllDataS2C payload) {
-    Minecraft client = Minecraft.getInstance();
-    client.execute(() -> {
-      if (client.player == null) {
-        return;
-      }
-      Level world = client.player.level();
-      for (PaintingAssignment assignment : payload.assignments()) {
-        ClientPaintingManager.getInstance().trySetPaintingData(world, assignment);
-      }
-    });
-  }
-
-  private static void handleMigrationFinish(MigrationFinishS2C payload) {
-    Minecraft client = Minecraft.getInstance();
-    client.execute(() -> {
-      ClientPaintingRegistry.getInstance().markMigrationFinished(payload.id(), payload.succeeded());
-      Screen currentScreen = client.screen;
-      if (!(currentScreen instanceof MigrationsScreen screen)) {
-        return;
-      }
-      screen.onMigrationFinished(payload.id(), payload.succeeded());
-    });
-  }
-
-  private static void handleOpenMenu(OpenMenuS2C payload) {
-    Minecraft client = Minecraft.getInstance();
-    client.execute(() -> {
-      Screen screen = client.screen;
-      if (screen == null || screen instanceof ChatScreen) {
-        client.setScreen(new MainMenuScreen(null));
-      }
-    });
   }
 
   public record SummaryS2C(UUID serverId,

@@ -1,27 +1,19 @@
 package me.roundaround.custompaintings.neoforge;
 
 import me.roundaround.custompaintings.CustomPaintingsMod;
-import me.roundaround.custompaintings.client.ClientPaintingManager;
-import me.roundaround.custompaintings.client.gui.screen.MainMenuScreen;
-import me.roundaround.custompaintings.client.option.KeyMappings;
-import me.roundaround.custompaintings.client.registry.CacheManager;
-import me.roundaround.custompaintings.client.registry.ClientPaintingRegistry;
-import me.roundaround.custompaintings.client.registry.ItemManager;
 import me.roundaround.custompaintings.command.CustomPaintingsCommand;
 import me.roundaround.custompaintings.server.ServerInfo;
 import me.roundaround.custompaintings.server.network.ImagePacketQueue;
 import me.roundaround.custompaintings.server.registry.ServerPaintingRegistry;
 import me.roundaround.trove.neoforge.TroveNeoForge;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.decoration.painting.Painting;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
@@ -52,26 +44,15 @@ public final class CustomPaintingsNeoForgeMod {
       }
     });
 
-    // -- Entity join/leave (server painting manager + client painting cache) -
+    // -- Entity join/leave (server painting manager) -------------------------
     NeoForge.EVENT_BUS.addListener(EntityJoinLevelEvent.class, event -> {
-      if (!(event.getEntity() instanceof Painting painting)) {
-        return;
-      }
-      if (event.getLevel() instanceof ServerLevel world) {
+      if (event.getEntity() instanceof Painting painting && event.getLevel() instanceof ServerLevel world) {
         CustomPaintingsMod.onPaintingLoad(world, painting);
-      } else if (event.getLevel().isClientSide()) {
-        ClientPaintingManager.onEntityLoad(painting);
       }
     });
-
     NeoForge.EVENT_BUS.addListener(EntityLeaveLevelEvent.class, event -> {
-      if (!(event.getEntity() instanceof Painting painting)) {
-        return;
-      }
-      if (event.getLevel() instanceof ServerLevel world) {
+      if (event.getEntity() instanceof Painting painting && event.getLevel() instanceof ServerLevel world) {
         CustomPaintingsMod.onPaintingUnload(world, painting);
-      } else if (event.getLevel().isClientSide()) {
-        ClientPaintingManager.onEntityUnload(painting);
       }
     });
 
@@ -120,23 +101,9 @@ public final class CustomPaintingsNeoForgeMod {
       ImagePacketQueue.getInstance().tick();
     });
 
-    // -- Client setup --------------------------------------------------------
-    modBus.addListener(FMLClientSetupEvent.class, event -> {
-      KeyMappings.register();
-      CacheManager.runBackgroundClean();
-      ItemManager.runBackgroundClean();
-    });
-
-    NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingIn.class, event -> {
-      ClientPaintingManager.init();
-    });
-    NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingOut.class, event -> {
-      ClientPaintingRegistry.getInstance().clear();
-      ClientPaintingManager.getInstance().clear();
-    });
-
-    // -- ModMenu analog: config-screen extension point -----------------------
-    container.registerExtensionPoint(IConfigScreenFactory.class,
-        (modContainer, parent) -> new MainMenuScreen(parent));
+    // -- Client setup: gated so the dedicated server never loads client classes.
+    if (FMLEnvironment.getDist() == Dist.CLIENT) {
+      CustomPaintingsNeoForgeClient.init(modBus, container);
+    }
   }
 }
