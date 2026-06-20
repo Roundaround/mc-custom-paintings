@@ -21,7 +21,7 @@ import me.roundaround.custompaintings.CustomPaintingsMod;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Tuple;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.util.Mth;
 
 public record Image(Color[] pixels, int width, int height, String hash) {
@@ -361,7 +361,7 @@ public record Image(Color[] pixels, int width, int height, String hash) {
           Math.round((float) alpha / colors.size()));
     }
 
-    public static Color weightedAverage(Collection<Tuple<Color, Float>> colors) {
+    public static Color weightedAverage(Collection<Pair<Color, Float>> colors) {
       if (colors.isEmpty()) {
         return transparent();
       }
@@ -373,13 +373,13 @@ public record Image(Color[] pixels, int width, int height, String hash) {
       float blue = 0;
       float alpha = 0;
 
-      for (Tuple<Color, Float> color : colors) {
-        float weight = color.getB();
+      for (Pair<Color, Float> color : colors) {
+        float weight = color.getSecond();
         totalWeight += weight;
-        red += color.getA().getRed() * weight;
-        green += color.getA().getGreen() * weight;
-        blue += color.getA().getBlue() * weight;
-        alpha += color.getA().getAlpha() * weight;
+        red += color.getFirst().getRed() * weight;
+        green += color.getFirst().getGreen() * weight;
+        blue += color.getFirst().getBlue() * weight;
+        alpha += color.getFirst().getAlpha() * weight;
       }
 
       return new Color(
@@ -471,7 +471,7 @@ public record Image(Color[] pixels, int width, int height, String hash) {
       int sampleSizeY = Math.max(1, Math.round(source.height / (float) targetHeight));
       int maxDistance = sampleSizeX * sampleSizeX + sampleSizeY * sampleSizeY;
 
-      ArrayList<Tuple<Color, Float>> samples = new ArrayList<>();
+      ArrayList<Pair<Color, Float>> samples = new ArrayList<>();
       float sx = x * (source.width / (float) targetWidth);
       float sy = y * (source.height / (float) targetHeight);
 
@@ -482,7 +482,7 @@ public record Image(Color[] pixels, int width, int height, String hash) {
         for (int dy = -sampleSizeY; dy <= sampleSizeY; dy++) {
           Color sample = source.getPixel(cx + dx, cy + dy);
           if (!sample.isTransparent()) {
-            samples.add(new Tuple<>(sample, (dx * dx + dy * dy) / (float) maxDistance));
+            samples.add(Pair.of(sample, (dx * dx + dy * dy) / (float) maxDistance));
           }
         }
       }
@@ -497,8 +497,8 @@ public record Image(Color[] pixels, int width, int height, String hash) {
 
         return Color.weightedAverage(
             List.of(
-                new Tuple<>(topColor, topWeight),
-                new Tuple<>(bottomColor, 1f - topWeight)));
+                Pair.of(topColor, topWeight),
+                Pair.of(bottomColor, 1f - topWeight)));
       };
     }
 

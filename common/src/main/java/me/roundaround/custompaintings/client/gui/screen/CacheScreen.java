@@ -84,7 +84,7 @@ public class CacheScreen extends Screen {
   @Override
   public void onClose() {
     assert this.minecraft != null;
-    this.minecraft.setScreen(this.parent);
+    this.minecraft.gui.setScreen(this.parent);
   }
 
   private void clearCache(StatsList list) {
@@ -110,7 +110,7 @@ public class CacheScreen extends Screen {
 
   private void navigateConfig() {
     assert this.minecraft != null;
-    this.minecraft.setScreen(new ConfigScreen(
+    this.minecraft.gui.setScreen(new ConfigScreen(
         this,
         Constants.MOD_ID,
         CustomPaintingsConfig.getInstance(),

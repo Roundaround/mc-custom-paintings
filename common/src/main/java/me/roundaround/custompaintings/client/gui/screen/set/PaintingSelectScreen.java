@@ -159,7 +159,7 @@ public class PaintingSelectScreen extends BaseSetPaintingScreen implements Paint
 
     this.layout.addFooter(Button.builder(
         CommonComponents.GUI_BACK, (button) -> {
-          Objects.requireNonNull(this.minecraft).setScreen(new PackSelectScreen(this.state));
+          Objects.requireNonNull(this.minecraft).gui.setScreen(new PackSelectScreen(this.state));
         }
     ).build());
     this.doneButton = this.layout.addFooter(Button.builder(
@@ -286,7 +286,7 @@ public class PaintingSelectScreen extends BaseSetPaintingScreen implements Paint
   }
 
   private void filterButtonPressed(Button button) {
-    Objects.requireNonNull(this.minecraft).setScreen(new FiltersScreen(this.state));
+    Objects.requireNonNull(this.minecraft).gui.setScreen(new FiltersScreen(this.state));
   }
 
   private List<Component> getInfoLines() {

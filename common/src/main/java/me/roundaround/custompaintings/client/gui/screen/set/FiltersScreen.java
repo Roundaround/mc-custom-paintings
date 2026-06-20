@@ -49,7 +49,7 @@ public class FiltersScreen extends BaseSetPaintingScreen {
 
   @Override
   public void onClose() {
-    Objects.requireNonNull(this.minecraft).setScreen(new PaintingSelectScreen(this.state));
+    Objects.requireNonNull(this.minecraft).gui.setScreen(new PaintingSelectScreen(this.state));
   }
 
   protected void close(Button button) {

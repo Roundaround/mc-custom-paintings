@@ -27,17 +27,17 @@ public class KeyMappings {
     ClientLifecycle.onTick(() -> {
       Minecraft client = Minecraft.getInstance();
       while (openMenu.consumeClick()) {
-        client.setScreen(new MainMenuScreen(client.screen));
+        client.gui.setScreen(new MainMenuScreen(client.gui.screen()));
       }
     });
 
     ScreenInput.subscribe((screen, input) -> {
       Minecraft client = Minecraft.getInstance();
-      if (client.screen != null && !(client.screen instanceof TitleScreen)) {
+      if (client.gui.screen() != null && !(client.gui.screen() instanceof TitleScreen)) {
         return false;
       }
       if (openMenu.matches(input)) {
-        client.setScreen(new MainMenuScreen(client.screen));
+        client.gui.setScreen(new MainMenuScreen(client.gui.screen()));
         return true;
       }
       return false;

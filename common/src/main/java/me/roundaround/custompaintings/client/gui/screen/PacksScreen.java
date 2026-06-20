@@ -180,7 +180,7 @@ public class PacksScreen extends Screen implements PacksLoadedListener {
     Path packsDirectory = PathAccessor.get().getPerWorldModDir(Constants.MOD_ID);
     String packList = packPaths.stream().map(Path::getFileName).map(Path::toString).collect(Collectors.joining(", "));
 
-    this.minecraft.setScreen(new ConfirmScreen(
+    this.minecraft.gui.setScreen(new ConfirmScreen(
         (confirmed) -> {
           if (confirmed) {
             boolean allSuccessful = true;
@@ -213,7 +213,7 @@ public class PacksScreen extends Screen implements PacksLoadedListener {
             this.reloadPacks();
           }
 
-          this.minecraft.setScreen(this);
+          this.minecraft.gui.setScreen(this);
         }, Component.translatable("custompaintings.packs.copyConfirm"), Component.nullToEmpty(packList)
     ));
   }
@@ -223,7 +223,7 @@ public class PacksScreen extends Screen implements PacksLoadedListener {
     if (!this.toActivate.isEmpty() || !this.toDeactivate.isEmpty()) {
       this.reloadPacks();
     }
-    this.minecraft.setScreen(this.parent);
+    this.minecraft.gui.setScreen(this.parent);
   }
 
   @Override

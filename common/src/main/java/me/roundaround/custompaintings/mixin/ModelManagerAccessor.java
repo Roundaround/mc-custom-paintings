@@ -6,6 +6,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 import net.minecraft.client.renderer.item.ItemModel;
+import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.client.resources.model.ModelManager;
 import net.minecraft.resources.Identifier;
 
@@ -16,4 +17,7 @@ public interface ModelManagerAccessor {
 
   @Accessor("bakedItemStackModels")
   void setBakedItemStackModels(Map<Identifier, ItemModel> bakedItemModels);
+
+  @Accessor("missingModels")
+  ModelBakery.MissingModels getMissingModels();
 }

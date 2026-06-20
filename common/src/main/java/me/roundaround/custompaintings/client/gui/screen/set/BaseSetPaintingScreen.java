@@ -19,7 +19,7 @@ public abstract class BaseSetPaintingScreen extends Screen {
 
   protected void navigate(Screen screen) {
     this.state.clearStateChangedListener();
-    Objects.requireNonNull(this.minecraft).setScreen(screen);
+    Objects.requireNonNull(this.minecraft).gui.setScreen(screen);
   }
 
   protected void saveEmpty() {
@@ -28,6 +28,6 @@ public abstract class BaseSetPaintingScreen extends Screen {
 
   protected void saveSelection(PaintingData paintingData) {
     ClientNetworking.sendSetPaintingPacket(this.state.getPaintingId(), paintingData.id());
-    Objects.requireNonNull(this.minecraft).setScreen(null);
+    Objects.requireNonNull(this.minecraft).gui.setScreen(null);
   }
 }

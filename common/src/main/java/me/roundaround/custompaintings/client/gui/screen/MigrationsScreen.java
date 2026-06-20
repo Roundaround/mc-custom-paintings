@@ -81,7 +81,7 @@ public class MigrationsScreen extends Screen {
 
   @Override
   public void onClose() {
-    Objects.requireNonNull(this.minecraft).setScreen(this.parent);
+    Objects.requireNonNull(this.minecraft).gui.setScreen(this.parent);
   }
 
   public void onMigrationFinished(CustomId id, boolean succeeded) {

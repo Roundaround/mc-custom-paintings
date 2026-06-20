@@ -118,7 +118,7 @@ public class MainMenuScreen extends BaseScreen implements PacksLoadedListener {
   }
 
   private void navigateConfig(Button button) {
-    this.minecraft.setScreen(new ConfigScreen(
+    this.minecraft.gui.setScreen(new ConfigScreen(
         this,
         Constants.MOD_ID,
         CustomPaintingsConfig.getInstance(),
@@ -127,13 +127,13 @@ public class MainMenuScreen extends BaseScreen implements PacksLoadedListener {
   }
 
   private void navigateCache(Button button) {
-    this.minecraft.setScreen(new CacheScreen(this));
+    this.minecraft.gui.setScreen(new CacheScreen(this));
   }
 
   private void navigatePacks(Button button) {
     boolean inSinglePlayer = this.minecraft.isLocalServer();
     boolean hasOps = hasOps(this.minecraft.player);
-    this.minecraft.setScreen(new PacksScreen(this, inSinglePlayer || hasOps));
+    this.minecraft.gui.setScreen(new PacksScreen(this, inSinglePlayer || hasOps));
   }
 
   private void navigateConvert(Button button) {
@@ -141,11 +141,11 @@ public class MainMenuScreen extends BaseScreen implements PacksLoadedListener {
       return;
     }
 
-    this.minecraft.setScreen(new LegacyConvertScreen(this.minecraft, this));
+    this.minecraft.gui.setScreen(new LegacyConvertScreen(this.minecraft, this));
   }
 
   private void navigateMigrate(Button button) {
-    this.minecraft.setScreen(new MigrationsScreen(this));
+    this.minecraft.gui.setScreen(new MigrationsScreen(this));
   }
 
   private void reloadPacks() {

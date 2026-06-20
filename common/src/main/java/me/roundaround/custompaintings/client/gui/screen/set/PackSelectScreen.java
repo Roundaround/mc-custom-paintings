@@ -55,6 +55,6 @@ public class PackSelectScreen extends BaseSetPaintingScreen {
     Objects.requireNonNull(this.minecraft)
         .getSoundManager()
         .play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1f));
-    Objects.requireNonNull(this.minecraft).setScreen(new PaintingSelectScreen(this.state));
+    Objects.requireNonNull(this.minecraft).gui.setScreen(new PaintingSelectScreen(this.state));
   }
 }

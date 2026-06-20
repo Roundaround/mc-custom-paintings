@@ -113,7 +113,7 @@ public final class ClientNetworking {
           payload.facing()
       );
 
-      client.setScreen(new PackSelectScreen(state));
+      client.gui.setScreen(new PackSelectScreen(state));
     });
   }
 
@@ -144,7 +144,7 @@ public final class ClientNetworking {
     Minecraft client = Minecraft.getInstance();
     client.execute(() -> {
       ClientPaintingRegistry.getInstance().markMigrationFinished(payload.id(), payload.succeeded());
-      Screen currentScreen = client.screen;
+      Screen currentScreen = client.gui.screen();
       if (!(currentScreen instanceof MigrationsScreen screen)) {
         return;
       }
@@ -155,9 +155,9 @@ public final class ClientNetworking {
   public static void handleOpenMenu(Networking.OpenMenuS2C payload) {
     Minecraft client = Minecraft.getInstance();
     client.execute(() -> {
-      Screen screen = client.screen;
+      Screen screen = client.gui.screen();
       if (screen == null || screen instanceof ChatScreen) {
-        client.setScreen(new MainMenuScreen(null));
+        client.gui.setScreen(new MainMenuScreen(null));
       }
     });
   }

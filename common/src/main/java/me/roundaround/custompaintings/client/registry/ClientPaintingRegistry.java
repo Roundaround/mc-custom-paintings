@@ -112,7 +112,7 @@ public class ClientPaintingRegistry extends CustomPaintingRegistry {
 
     this.clearUnknownMigrations();
 
-    if (this.client != null && this.client.screen instanceof PacksLoadedListener screen) {
+    if (this.client != null && this.client.gui.screen() instanceof PacksLoadedListener screen) {
       screen.onPacksLoaded();
     }
   }
@@ -351,7 +351,7 @@ public class ClientPaintingRegistry extends CustomPaintingRegistry {
     this.bytesExpected = byteCount;
 
     if (this.client.player != null && !this.client.isLocalServer()) {
-      DownloadProgressToast.add(this.client.getToastManager(), this.imagesExpected, this.bytesExpected);
+      DownloadProgressToast.add(this.client.gui.toastManager(), this.imagesExpected, this.bytesExpected);
     }
 
     this.copyInCachedImageData(Set.copyOf(expectedIds));
@@ -362,7 +362,7 @@ public class ClientPaintingRegistry extends CustomPaintingRegistry {
     this.imagesReceived++;
     this.bytesReceived += image.getSize();
 
-    DownloadProgressToast toast = DownloadProgressToast.get(this.client.getToastManager());
+    DownloadProgressToast toast = DownloadProgressToast.get(this.client.gui.toastManager());
     if (toast != null) {
       toast.setReceived(this.imagesReceived, this.bytesReceived);
     }
@@ -377,7 +377,7 @@ public class ClientPaintingRegistry extends CustomPaintingRegistry {
   public void setPaintingChunk(CustomId id, int index, byte[] bytes) {
     this.bytesReceived += bytes.length;
 
-    DownloadProgressToast toast = DownloadProgressToast.get(this.client.getToastManager());
+    DownloadProgressToast toast = DownloadProgressToast.get(this.client.gui.toastManager());
     if (toast != null) {
       toast.setReceived(this.imagesReceived, this.bytesReceived);
     }
@@ -404,7 +404,7 @@ public class ClientPaintingRegistry extends CustomPaintingRegistry {
     if (setter.apply(builder)) {
       this.imagesReceived++;
 
-      DownloadProgressToast toast = DownloadProgressToast.get(this.client.getToastManager());
+      DownloadProgressToast toast = DownloadProgressToast.get(this.client.gui.toastManager());
       if (toast != null) {
         toast.setReceived(this.imagesReceived, this.bytesReceived);
       }
@@ -483,7 +483,7 @@ public class ClientPaintingRegistry extends CustomPaintingRegistry {
 
     this.atlasInitialized = true;
 
-    if (this.client.screen instanceof PacksLoadedListener screen) {
+    if (this.client.gui.screen() instanceof PacksLoadedListener screen) {
       screen.onPackTexturesInitialized();
     }
   }

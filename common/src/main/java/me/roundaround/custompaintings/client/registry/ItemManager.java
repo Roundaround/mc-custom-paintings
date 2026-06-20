@@ -23,7 +23,6 @@ import net.minecraft.client.renderer.item.ClientItem;
 import net.minecraft.client.renderer.item.ItemModel;
 import net.minecraft.client.renderer.texture.*;
 import net.minecraft.client.resources.metadata.animation.FrameSize;
-import net.minecraft.client.resources.model.ModelDebugName;
 import net.minecraft.client.resources.model.ModelDiscovery;
 import net.minecraft.client.resources.model.ResolvedModel;
 import net.minecraft.client.resources.model.UnbakedModel;
@@ -74,7 +73,6 @@ public final class ItemManager {
   private final HashMap<CustomId, Image> generated = new HashMap<>();
   private final HashSet<CustomId> usesVanilla = new HashSet<>();
   private final ArrayList<PaintingData> paintings = new ArrayList<>();
-  private final MaterialBakerImpl materialBaker = new MaterialBakerImpl();
   private final SpriteGetterImpl spriteGetter = new SpriteGetterImpl();
 
   private boolean atlasInitialized = false;
@@ -306,7 +304,7 @@ public final class ItemManager {
     Map<Identifier, ResolvedModel> simpleModels = collector.resolve();
 
     ItemModelBaker baker = new ItemModelBaker(itemAssets, simpleModels, missingModel);
-    Map<Identifier, ItemModel> bakedModels = baker.bake(this.materialBaker, this.spriteGetter);
+    Map<Identifier, ItemModel> bakedModels = baker.bake(new MaterialBakerImpl(), this.spriteGetter);
 
     ModelManagerAccessor accessor = (ModelManagerAccessor) this.client.getModelManager();
     HashMap<Identifier, ItemModel> itemModels = new HashMap<>(accessor.getBakedItemStackModels());
@@ -754,15 +752,14 @@ public final class ItemManager {
   private record GeneratedImage(CustomId paintingId, String baseHash, Image image) {
   }
 
-  private class MaterialBakerImpl implements MaterialBaker {
-    @Override
-    public Material.Baked get(Material material, ModelDebugName model) {
-      return new Material.Baked(ItemManager.this.getSprite(material.sprite()), material.forceTranslucent());
+  private class MaterialBakerImpl extends MaterialBaker {
+    MaterialBakerImpl() {
+      super(ItemManager.this.getMissingSprite());
     }
 
     @Override
-    public Material.Baked reportMissingReference(String name, ModelDebugName model) {
-      return new Material.Baked(ItemManager.this.getMissingSprite(), false);
+    protected Material.Baked bake(Material material) {
+      return new Material.Baked(ItemManager.this.getSprite(material.sprite()), material.forceTranslucent());
     }
   }
 

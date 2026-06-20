@@ -3,6 +3,7 @@ package me.roundaround.custompaintings.client.render.model;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import me.roundaround.custompaintings.CustomPaintingsMod;
+import me.roundaround.custompaintings.mixin.ModelManagerAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.renderer.PlayerSkinRenderCache;
@@ -41,15 +42,13 @@ public class ItemModelBaker {
 
   public Map<Identifier, ItemModel> bake(MaterialBaker materialBaker, SpriteGetter spriteGetter) {
     ModelBaker.Interner interner = new InternerImpl();
-    ModelBakery.MissingModels missingModels = ModelBakery.MissingModels.bake(
-        this.missingModel,
-        materialBaker,
-        interner
-    );
+    Minecraft client = Minecraft.getInstance();
+    // reuse vanilla's missing models — re-baking ours trips 26.2's block-atlas-only check
+    ModelBakery.MissingModels missingModels =
+        ((ModelManagerAccessor) client.getModelManager()).getMissingModels();
     MissingItemModel missingItemModel = missingModels.item();
 
     BakerImpl bakerImpl = new BakerImpl(materialBaker, interner, missingModels);
-    Minecraft client = Minecraft.getInstance();
     PlayerSkinRenderCache skinCache = client.playerSkinRenderCache();
     Matrix4f identity = new Matrix4f();
     HashMap<Identifier, ItemModel> itemModels = new HashMap<>();

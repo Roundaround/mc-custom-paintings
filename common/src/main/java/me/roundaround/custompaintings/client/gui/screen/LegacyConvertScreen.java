@@ -124,7 +124,7 @@ public class LegacyConvertScreen extends Screen {
 
   @Override
   public void onClose() {
-    Objects.requireNonNull(this.minecraft).setScreen(this.parent);
+    Objects.requireNonNull(this.minecraft).gui.setScreen(this.parent);
   }
 
   private void setOutDir(boolean worldScoped) {
